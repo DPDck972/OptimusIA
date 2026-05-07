@@ -39,6 +39,7 @@ class Settings:
     # LLM Configuration
     MODEL_NAME: str = os.getenv("LLM_MODEL", "qwen3.5:4b")
     LOCAL_URL: str = os.getenv("LLM_URL", "http://localhost:11434/v1")
+    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "not_required")
     LLM_TIMEOUT: int = int(os.getenv("LLM_TIMEOUT", "120"))
     
     # Security

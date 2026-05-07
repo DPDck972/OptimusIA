@@ -214,7 +214,7 @@ try:
     llm = ChatOpenAI(
         model=settings.MODEL_NAME,
         base_url=settings.LOCAL_URL,
-        api_key="not_required",
+        api_key=settings.LLM_API_KEY,
         temperature=0.1,
         timeout=settings.LLM_TIMEOUT,
         max_retries=2,

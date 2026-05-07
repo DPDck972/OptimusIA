@@ -1,8 +1,9 @@
 # ================================================
-# ENVIRONMENT VARIABLES
+# ENVIRONMENT VARIABLES (SECURITY)
 # ================================================
 .env
-
+.env.local
+.env.*.local
 
 # ================================================
 # LOGS AND DEBUG
@@ -16,7 +17,6 @@ pnpm-debug.log*
 lerna-debug.log*
 *.log
 
-
 # ================================================
 # DEPENDENCIES & BUILD ARTIFACTS
 # ================================================
@@ -26,18 +26,34 @@ dist
 dist-ssr
 *.local
 
-
-# ================================================
 # Python
-# ================================================
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-
-# ================================================
 # Virtual Environments
-# ================================================
+.venv
 .API
-
+.querrybot/
 
 # ================================================
 # SECURITY & CERTIFICATES
@@ -50,30 +66,19 @@ certs/
 *.p12
 *.pfx
 
-
 # ================================================
 # APPLICATION SPECIFIC
 # ================================================
+dados.xlsx
 
+# Docker volumes
+docker_volumes/
 
 # Temporary files
 tmp/
 temp/
 *.tmp
 *.bak
-
-# ================================================
-# OS SPECIFIC
-# ================================================
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-api/docker-compose.yml
 api/Dockerfile
 api/nginx.conf
-api/README_DEPLOYMENT.md
-api/SECURITY.md
+api/docker-compose.yml
