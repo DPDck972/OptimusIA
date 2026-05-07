@@ -1,0 +1,522 @@
+/* =========================================
+   VARIÁVEIS DE CORES (TEMA DINÂMICO)
+========================================= */
+:root {
+  /* Cores do Tema Padrão Optimus */
+  --primary-blue: #063567;
+  --header-blue: #0d427d;
+  --accent-gold: #ffc107;
+  --bg-light: #f4f6f9;
+  --bg-white: #ffffff;
+  --text-dark: #333;
+  --text-muted: #6c757d;
+  --border-color: #e0e0e0;
+  --sidebar-item-bg: rgba(255, 255, 255, 0.05);
+  --input-shadow: rgba(0, 0, 0, 0.05);
+}
+
+/* ESTADO DE ALTO CONTRASTE 
+   Inverte as variáveis para o padrão de acessibilidade (Preto e Amarelo)
+*/
+.high-contrast {
+  --primary-blue: #000000;
+  --header-blue: #000000;
+  --accent-gold: #ffff00;
+  --bg-light: #000000;
+  --bg-white: #000000;
+  --text-dark: #ffff00;
+  --text-muted: #ffff00;
+  --border-color: #ffff00;
+  --sidebar-item-bg: #1a1a1a;
+  --input-shadow: none;
+}
+
+/* =========================================
+   RESET E BASE
+========================================= */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* =========================================
+   ESTRUTURA PRINCIPAL (GRID)
+========================================= */
+.screen-container {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: auto auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+  transition: grid-template-columns 0.6s ease;
+}
+
+.main-content {
+  display: contents;
+}
+.screen-container.sidebar-closed {
+  grid-template-columns: 1fr;
+}
+
+/* 3. (Opcional) Centraliza melhor se a tela for muito grande */
+.screen-container.sidebar-closed .suggestions-grid,
+.screen-container.sidebar-closed .chat-input-section {
+  margin-left: auto;
+  margin-right: auto;
+}
+/* =========================================
+   1. BARRA DE ACESSIBILIDADE
+========================================= */
+.acessibility-container {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  background-color: var(--header-blue);
+  color: #fff;
+  padding: 8px 20px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--accent-gold);
+}
+
+.acessibility-container p {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 0;
+}
+
+.acessibility-container button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.acessibility-container button:hover {
+  border-color: var(--accent-gold);
+  text-decoration: underline;
+}
+
+/* Empurra botões para a direita */
+.acessibility-container p button:first-of-type {
+  margin-left: auto;
+}
+
+/* =========================================
+   2. HEADER (CABEÇALHO)
+========================================= */
+.header-home {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  background-color: var(--bg-white);
+  border-bottom: 2px solid #5ab0e2;
+}
+.header-home p button {
+  background-color: transparent;
+  border: 1px solid #ced4da;
+  color: #6c757d;
+  padding: 5px 15px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-left: 12px;
+}
+.header-home p button:hover {
+  border-color: #063567;
+}
+.header-home header {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+}
+
+.header-logo {
+  height: 45px;
+  margin-right: 15px;
+}
+
+.header-text-container {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  width: 100%;
+  column-gap: 15px;
+}
+
+.header-text-container h1 {
+  font-size: 16px;
+  color: var(--primary-blue);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.header-text-container h1::before,
+.header-text-container h1::after {
+  content: "●";
+  color: var(--accent-gold);
+  font-size: 10px;
+}
+
+.header-text-container p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* =========================================
+   3. BARRA LATERAL (SIDEBAR)
+========================================= */
+.chat-sidebar-container {
+  position: relative;
+  grid-column: 1;
+  grid-row: 3;
+  background-color: var(--primary-blue);
+  border-right: 2px solid var(--accent-gold);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 15px;
+  color: #fff;
+
+  overflow: hidden;
+}
+
+.chat-title h1 {
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+.chat-title p {
+  font-size: 16px;
+  text-align: center;
+  margin-top: 0px;
+}
+
+.btn-bi {
+  background-color: var(--accent-gold);
+  color: #000;
+  width: 100%;
+  min-width: 0; /* ← A MÁGICA ESTÁ AQUI */
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botão Principal: Nova Conversa */
+.btn-new {
+  background-color: transparent; /* Fundo transparente para herdar o azul da sidebar */
+  border: 1px solid var(--accent-gold, #ffc107); /* Borda amarela em toda a volta */
+  color: #ffffff; /* Texto branco */
+
+  width: 100%;
+  padding: 10px 15px;
+  border-radius: 4px; /* Mesma borda arredondada do botão "Abrir BI" */
+
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 15px;
+  cursor: pointer;
+
+  /* Flexbox para alinhar o ícone de + com o texto */
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+
+  transition: all 0.2s ease-in-out;
+}
+
+/* Efeito bacana ao passar o mouse */
+.btn-new:hover {
+  background-color: rgba(
+    255,
+    193,
+    7,
+    0.1
+  ); /* Fundo amarelo bem sutil e transparente */
+  color: var(
+    --accent-gold,
+    #ffc107
+  ); /* O texto fica amarelo para dar destaque */
+  transform: translateY(-1px); /* Leve efeito de elevação */
+}
+.btn-chat-item {
+  background-color: var(--sidebar-item-bg);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--accent-gold);
+  color: inherit;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  margin-top: 10px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chatbar-footer {
+  margin-top: auto;
+  padding-top: 15px;
+  font-size: 12px;
+  opacity: 0.6;
+  text-align: center;
+}
+.btn-open-sidebar {
+  position: absolute;
+  top: 57%;
+
+  transform: translateY(-50%);
+
+  width: 25px;
+  height: 60px;
+  background-color: var(--primary-blue, #063567);
+  border: 2px solid var(--accent-gold, #ffc107);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+
+  color: var(--accent-gold, #ffc107);
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 999;
+  transition: 0.2s;
+}
+.btn-open-sidebar:hover {
+  width: 30px;
+}
+.close-sidebar-btn {
+  position: absolute;
+  top: 50%;
+  right: -25px;
+  transform: translateY(-50%);
+
+  width: 25px;
+  height: 60px;
+  background-color: var(--primary-blue, #063567);
+  border: 2px solid var(--accent-gold, #ffc107);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+
+  color: var(--accent-gold, #ffc107);
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 999;
+  transition: 0.2s;
+}
+
+.close-sidebar-btn:hover {
+  width: 30px;
+  right: -30px;
+}
+
+/* =========================================
+   4. TELA PRINCIPAL DO CHAT
+========================================= */
+.main-chat-container {
+  grid-column: 2;
+  grid-row: 3;
+  background-color: var(--bg-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.welcome-section {
+  align-items: center;
+  text-align: center;
+}
+
+.welcome-title {
+  font-size: 22px;
+  color: var(--primary-blue);
+  text-align: center;
+  align-items: center;
+}
+.welcome-subtitle {
+  font-size: 17px;
+  color: rgb(190, 190, 190);
+  text-align: center;
+  align-items: center;
+}
+/* Cards de Sugestão */
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 30px;
+}
+
+.suggestion-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.suggestion-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-gold);
+}
+
+.suggestion-card h3 {
+  color: var(--primary-blue);
+  margin-top: 0;
+}
+
+/* Área de Input */
+.chat-input-section {
+  width: 100%;
+  max-width: 800px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.input-box-container {
+  display: flex;
+  background: var(--bg-white);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 4px 15px var(--input-shadow);
+}
+
+.input-box-container input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-dark);
+  padding: 10px;
+  outline: none;
+}
+
+.send-button {
+  background-color: var(--primary-blue);
+  border: none;
+  border-radius: 8px;
+  width: 45px;
+  cursor: pointer;
+}
+
+.screen-container.sidebar-closed .chat-sidebar-container {
+  border-right: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* =========================================
+   CHAT ACTIVE STATE (Quando há mensagens)
+========================================= */
+.main-chat-container.chat-active {
+  align-items: flex-start;
+  padding: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
+
+.messages-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Error Banner */
+.error-banner {
+  width: 100%;
+  background-color: #fee;
+  border-bottom: 2px solid #c33;
+  color: #c33;
+  padding: 12px 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Chat Form */
+.chat-form {
+  width: 100%;
+  margin: 0;
+}
+
+.input-box-container {
+  gap: 8px;
+}
+
+.send-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.send-button:hover:not(:disabled) {
+  background-color: var(--header-blue);
+  transform: scale(1.05);
+}
+
+.send-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .suggestions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .messages-container {
+    max-width: 100%;
+  }
+
+  .chat-message {
+    max-width: 95%;
+  }
+}

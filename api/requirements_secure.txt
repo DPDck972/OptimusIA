@@ -1,0 +1,18 @@
+langchain
+langchain-ollama
+langchain-chroma
+langchain_openai
+langchain_experimental
+python-dotenv
+pandas
+matplotlib
+openpyxl
+tabulate
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-multipart>=0.0.6         # Para parsing de formulários seguros
+slowapi>=0.1.9                  # Rate limiting avançado
+cryptography>=41.0.0            # Para SSL/TLS
+pyOpenSSL>=23.0.0              # OpenSSL para Python

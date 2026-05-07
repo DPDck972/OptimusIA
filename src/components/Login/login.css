@@ -1,0 +1,226 @@
+/* =========================================
+   1. BASE E GLOBAIS
+========================================= */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #f4f7f9;
+  font-family:
+    "Inter",
+    -apple-system,
+    sans-serif;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #f0f0f0;
+  margin: 25px 0 15px 0;
+}
+
+/* =========================================
+   2. ESTRUTURA E CONTAINERS
+========================================= */
+.login-screen-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+.login-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.5s ease;
+}
+
+/* =========================================
+   3. HEADER (LOGO E TÍTULOS)
+========================================= */
+.login-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.login-header-logo {
+  width: 60px;
+  height: auto;
+}
+
+.login-header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.login-header-text h1 {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 1.1rem;
+  color: #003d7a;
+  gap: 5px;
+}
+
+.login-header-text p {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem; /* Ajustado para ficar legível */
+  color: #6c757d;
+}
+.login-header-text h1::before,
+.login-header-text h1::after {
+  content: "●";
+  color: #ffc107;
+  font-size: 0.8rem;
+}
+
+/* =========================================
+   4. FORMULÁRIO E INPUTS
+========================================= */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Espaço entre os blocos de input */
+}
+
+.login-input {
+  display: flex;
+  gap: 8px; /* Espaço entre o texto (E-mail/Senha) e a caixa de digitação */
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.login-input p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+  text-align: left;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dee2e6; /* Corrigido para um cinza mais suave */
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+/* =========================================
+   5. BOTÕES
+========================================= */
+.button-container-login,
+.button-container-register {
+  margin-top: 20px;
+  margin-bottom: -20px;
+  width: 100%;
+}
+
+.button-container-login button {
+  width: 100%;
+  padding: 14px;
+  background-color: #003d7a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.button-container-login button:hover {
+  background-color: #002d5a;
+}
+
+.button-container-register button {
+  width: 100%;
+  padding: 14px;
+  background-color: #ffc107;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.button-container-register button:hover {
+  background-color: #e0a800;
+}
+
+/* =========================================
+   6. UTILITÁRIOS E MENSAGENS DE ERRO
+========================================= */
+.pass-recovery {
+  text-align: center;
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: block;
+}
+
+.error-message {
+  background-color: #ffe5e5;
+  color: #d93025;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #f8d7da;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: shake 0.2s ease-in-out 0s 2;
+}
+
+.message.success {
+  background-color: #e6ffe6;
+  color: #1a7a1a;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #c3e6cb;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+}
+
+.message.error {
+  background-color: #ffe5e5;
+  color: #d93025;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #f8d7da;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
