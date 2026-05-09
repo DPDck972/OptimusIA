@@ -1,4 +1,5 @@
 langchain
+langchain-core
 langchain-ollama
 langchain-chroma
 langchain_openai

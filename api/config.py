@@ -49,6 +49,11 @@ class Settings:
     # Data Files
     DATA_FILE: str = os.getenv("DATA_FILE", "dados.xlsx")
     
+    # Embedding (RAG)
+    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+    EMBEDDING_URL: str = os.getenv("EMBEDDING_URL", "http://localhost:11434")
+    EMBEDDING_DIMENSION: int = int(os.getenv("EMBEDDING_DIMENSION", "768"))
+
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     LOG_FILE: str = os.getenv("LOG_FILE", "logs/api.log")

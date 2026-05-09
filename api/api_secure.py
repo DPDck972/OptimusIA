@@ -18,6 +18,7 @@ from langchain_openai import ChatOpenAI
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 
 from config import get_settings
+from rag_knowledge import KnowledgeBase
 
 # ======================== LOGGING ========================
 def setup_logging(settings):
@@ -40,6 +41,7 @@ def setup_logging(settings):
     logger.setLevel(getattr(logging, settings.LOG_LEVEL))
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+    logger.propagate = False
     
     return logger
 
@@ -255,6 +257,11 @@ except Exception as e:
     logger.error(f"Erro ao criar agente: {e}")
     raise
 
+# Inicializa Knowledge Base para RAG
+kb = KnowledgeBase(settings)
+if not kb.is_populated():
+    logger.warning("Knowledge base vazia. Execute: python seed_knowledge.py para popular.")
+
 # ======================== APLICAÇÃO FASTAPI ========================
 app = FastAPI(
     title=settings.API_TITLE,
@@ -370,11 +377,32 @@ async def process_query(
                 detail="Query contém caracteres inválidos"
             )
 
-        # Processa a query com histórico da sessão
-        resp = agent.invoke({
+        # RAG: recupera contexto relevante da knowledge base
+        suffix = ""
+        try:
+            retrieved = kb.query(request.query, k=3)
+            if retrieved:
+                context = "\n\n".join(
+                    f"[{d.metadata.get('source', 'desconhecido')}]\n{d.page_content[:800]}"
+                    for d in retrieved
+                )
+                suffix = (
+                    "Contexto adicional para ajudar na resposta:\n"
+                    f"{context}\n\n"
+                    "Use estas informacoes se relevantes para a pergunta. "
+                    "Nunca invente informacoes que nao estejam nos dados ou no contexto fornecido."
+                )
+        except Exception:
+            logger.warning("RAG indisponivel — segue sem contexto adicional")
+
+        # Processa a query com histórico da sessão e contexto RAG
+        invoke_input = {
             "input": request.query,
             "chat_history": chat_history,
-        })
+        }
+        if suffix:
+            invoke_input["suffix"] = suffix
+        resp = agent.invoke(invoke_input)
 
         output = resp.get("output", "")
 

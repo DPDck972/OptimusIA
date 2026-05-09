@@ -82,3 +82,7 @@ temp/
 api/Dockerfile
 api/nginx.conf
 api/docker-compose.yml
+CONTEXT.md
+CONTEXT_RAG.md
+package-lock.json
+/api/.chroma_db
