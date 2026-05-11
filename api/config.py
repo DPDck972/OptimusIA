@@ -48,6 +48,9 @@ class Settings:
     
     # Data Files
     DATA_FILE: str = os.getenv("DATA_FILE", "dados.xlsx")
+    DATASETS_DIR: str = os.getenv("DATASETS_DIR", "datasets")
+    DATASETS_INDEX: str = "datasets_index.json"
+    MAX_UPLOAD_SIZE: int = int(os.getenv("MAX_UPLOAD_SIZE", "52428800"))  # 50MB
     
     # Embedding (RAG)
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")

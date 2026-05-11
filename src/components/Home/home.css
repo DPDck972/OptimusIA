@@ -273,6 +273,53 @@ html {
   ); /* O texto fica amarelo para dar destaque */
   transform: translateY(-1px); /* Leve efeito de elevação */
 }
+
+/* Dataset Management Section */
+.dataset-section {
+  margin: 10px 0;
+}
+
+.dataset-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding: 8px 0;
+  margin-bottom: 8px;
+}
+
+.btn-data-action {
+  background-color: rgba(255, 193, 7, 0.05);
+  border: 1px solid var(--accent-gold);
+  color: #ffffff;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 13px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-data-action:hover {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: var(--accent-gold, #ffc107);
+  transform: translateY(-1px);
+  border-color: var(--accent-gold);
+}
+
+.btn-data-action:active {
+  transform: translateY(0);
+}
+
 .btn-chat-item {
   background-color: var(--sidebar-item-bg);
   border: 1px solid var(--border-color);
