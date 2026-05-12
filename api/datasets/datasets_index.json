@@ -1,12 +1,21 @@
 {
-  "active_dataset": "default",
+  "active_dataset": "dataset_20260511_235708",
   "datasets": {
     "default": {
       "name": "Dataset Padrão",
-      "file": "../dados.xlsx",
-      "created_at": "2026-05-11T00:00:00Z",
+      "file": "dados.xlsx",
+      "created_at": "2026-05-11T23:56:12.068034",
       "rows": 0,
-      "columns": 0
+      "columns": 0,
+      "permanent": true
+    },
+    "dataset_20260511_235708": {
+      "name": "dados.xlsx",
+      "file": "datasets\\dataset_20260511_235708.xlsx",
+      "created_at": "2026-05-11T23:57:08.631967",
+      "rows": 2504,
+      "columns": 22,
+      "permanent": true
     }
   }
 }
