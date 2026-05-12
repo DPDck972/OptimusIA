@@ -1,8 +1,6 @@
+import { formatMessage } from "../../services/formatMessage.js";
 import "./ChatMessage.css";
 
-/**
- * ChatMessage Component - Displays individual messages in the chat
- */
 function ChatMessage({ message }) {
   const { role, content, timestamp } = message;
 
@@ -15,10 +13,14 @@ function ChatMessage({ message }) {
     });
   };
 
+  const blocks = formatMessage(content);
+
   return (
     <div className={`chat-message ${role}`}>
       <div className="message-content">
-        <p>{content}</p>
+        {blocks.map((html, i) => (
+          <div key={i} dangerouslySetInnerHTML={{ __html: html }} />
+        ))}
         {timestamp && (
           <span className="message-time">{formatTime(timestamp)}</span>
         )}

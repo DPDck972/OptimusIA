@@ -1,6 +1,9 @@
-import "./home.css";
+import { useState } from 'react';
+import './home.css';
 
-function ChatSidebar({ setIsSideBarOpen, onNewConversation }) {
+function ChatSidebar({ setIsSideBarOpen, onNewConversation, onOpenUploadModal, onOpenDatasetManager }) {
+  const [isHoveringData, setIsHoveringData] = useState(false);
+
   return (
     <div className="chat-sidebar-container">
       <button
@@ -16,6 +19,29 @@ function ChatSidebar({ setIsSideBarOpen, onNewConversation }) {
         <button className="btn-bi">📊 Abrir BI</button>
         <button className="btn-new" onClick={onNewConversation}>＋ Nova Conversa</button>
         <hr />
+        
+        {/* Dataset Management Section */}
+        <div className="dataset-section">
+          <div className="dataset-section-title">Dados</div>
+          <button 
+            className="btn-data-action"
+            onClick={onOpenUploadModal}
+            onMouseEnter={() => setIsHoveringData(true)}
+            onMouseLeave={() => setIsHoveringData(false)}
+            title="Adicionar novo dataset"
+          >
+            📤 Upload de Dados
+          </button>
+          <button 
+            className="btn-data-action"
+            onClick={onOpenDatasetManager}
+            title="Gerenciar datasets disponíveis"
+          >
+            💾 Gerenciar Dados
+          </button>
+        </div>
+        <hr />
+        
         <div className="recent-chats">
           <button className="btn-chat-item">💬 Nova conversa</button>
         </div>

@@ -31,6 +31,11 @@
   word-wrap: break-word;
 }
 
+.message-content p {
+  white-space: pre-wrap;
+  margin: 0;
+}
+
 .chat-message.user .message-content {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -41,6 +46,16 @@
   background-color: #f0f0f0;
   color: #333;
   border-bottom-left-radius: 0.25rem;
+}
+
+.chat-message.assistant .message-content ul,
+.chat-message.assistant .message-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.chat-message.assistant .message-content li {
+  margin-bottom: 0.25rem;
 }
 
 .message-time {

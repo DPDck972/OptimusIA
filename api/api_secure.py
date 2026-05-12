@@ -9,7 +9,7 @@ from collections import defaultdict
 from datetime import datetime
 from time import time
 from typing import Optional
-from fastapi import FastAPI, Depends, HTTPException, status, Header
+from fastapi import FastAPI, Depends, HTTPException, status, Header, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, Field
@@ -18,6 +18,8 @@ from langchain_openai import ChatOpenAI
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 
 from config import get_settings
+from rag_knowledge import KnowledgeBase
+from dataset_manager import DatasetManager
 
 # ======================== LOGGING ========================
 def setup_logging(settings):
@@ -40,6 +42,7 @@ def setup_logging(settings):
     logger.setLevel(getattr(logging, settings.LOG_LEVEL))
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
+    logger.propagate = False
     
     return logger
 
@@ -155,35 +158,14 @@ session_store = SessionStore()
 
 
 # ======================== INICIALIZAÇÃO DA API ========================
-# Carrega dados uma única vez
+# Inicializa gerenciador de datasets
 try:
-    df = pd.read_excel(settings.DATA_FILE)
-
-    # Limpa nomes de colunas (remove acentos, espaços extras, normaliza)
-    def _clean_col_name(name: str) -> str:
-        normalized = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode('ascii')
-        cleaned = normalized.strip().upper().replace(' ', '_')
-        cleaned = ''.join(c for c in cleaned if c.isalnum() or c == '_')
-        return cleaned
-
-    df.columns = [_clean_col_name(c) for c in df.columns]
-
-    # Garante que colunas numéricas estejam com tipo correto
-    numeric_cols = ['DESP_EMPENHADA', 'DESP_A_LIQUIDAR', 'DESP_LIQUIDADA',
-                    'DESP_LIQUIDADA_A_PAGAR', 'DESP__PAGA']
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-
-    # Converte coluna de data para string legível
-    date_cols = df.select_dtypes(include=['datetime']).columns
-    for col in date_cols:
-        df[col] = df[col].dt.strftime('%Y-%m-%d')
-
-    logger.info(f"Dados carregados com sucesso: {settings.DATA_FILE} ({len(df)} linhas, {len(df.columns)} colunas)")
+    dataset_manager = DatasetManager(settings)
+    df = dataset_manager.load_dataset()
+    logger.info(f"Dataset carregado com sucesso ({len(df)} linhas, {len(df.columns)} colunas)")
     logger.info(f"Colunas: {list(df.columns)}")
 except Exception as e:
-    logger.error(f"Erro ao carregar dados: {e}")
+    logger.error(f"Erro ao carregar dataset: {e}")
     raise
 
 # Constrói descrição do schema para o agente
@@ -209,6 +191,31 @@ df_description = _build_df_description(df)
 NUM_ROWS = len(df)
 NUM_COLS = len(df.columns)
 
+
+def _get_agent_prefix(dataframe: pd.DataFrame) -> str:
+    """Gera o prefixo de instruções para o agente LangChain."""
+    rows = len(dataframe)
+    cols = len(dataframe.columns)
+    desc = _build_df_description(dataframe)
+    
+    return (
+        f"Você é um analista de dados especialista em consultas a planilhas de empenhos de despesas públicas. "
+        f"Você tem acesso a um DataFrame pandas chamado 'df' com EXATAMENTE {rows} linhas e {cols} colunas.\n\n"
+        "Schema do DataFrame (exemplos são APENAS 1 valor — NUNCA use para cálculos):\n"
+        f"{desc}\n\n"
+        "Instruções:\n"
+        f"1. SEMPRE use o DataFrame completo 'df' ({rows} linhas) para cálculos. NUNCA use df.head() para somas, médias, contagens.\n"
+        "2. Use df['coluna'].sum() para totais — isso considera TODAS as linhas.\n"
+        "3. Para filtros por data, a coluna 'MES_LANCAMENTO' esta no formato 'YYYY-MM-DD' como string.\n"
+        "4. Para filtros por texto, use str.contains() com case=False e na=False.\n"
+        "5. Para contagem de registros: use len(df) ou df.shape[0].\n"
+        "6. SEMPRE imprima o resultado final usando print(result).\n"
+        "7. Responda em português de forma clara e concisa.\n"
+        "8. Destaque valores numéricos formatados como R$ com separador de milhar.\n"
+        "9. Se a query for ambígua, explique sua interpretação antes de responder.\n"
+    )
+
+
 # Configura o modelo LLM
 try:
     llm = ChatOpenAI(
@@ -233,27 +240,17 @@ try:
         allow_dangerous_code=settings.ALLOW_DANGEROUS_CODE,
         verbose=True,
         handle_parsing_errors=True,
-        prefix=(
-            f"Você é um analista de dados especialista em consultas a planilhas de empenhos de despesas públicas. "
-            f"Você tem acesso a um DataFrame pandas chamado 'df' com EXATAMENTE {NUM_ROWS} linhas e {NUM_COLS} colunas.\n\n"
-            "Schema do DataFrame (exemplos são APENAS 1 valor — NUNCA use para cálculos):\n"
-            f"{df_description}\n\n"
-            "Instruções:\n"
-            f"1. SEMPRE use o DataFrame completo 'df' ({NUM_ROWS} linhas) para cálculos. NUNCA use df.head() para somas, médias, contagens.\n"
-            "2. Use df['coluna'].sum() para totais — isso considera TODAS as linhas.\n"
-            "3. Para filtros por data, a coluna 'MES_LANCAMENTO' esta no formato 'YYYY-MM-DD' como string.\n"
-            "4. Para filtros por texto, use str.contains() com case=False e na=False.\n"
-            "5. Para contagem de registros: use len(df) ou df.shape[0].\n"
-            "6. SEMPRE imprima o resultado final usando print(result).\n"
-            "7. Responda em português de forma clara e concisa.\n"
-            "8. Destaque valores numéricos formatados como R$ com separador de milhar.\n"
-            "9. Se a query for ambígua, explique sua interpretação antes de responder.\n"
-        ),
+        prefix=_get_agent_prefix(df),
     )
     logger.info("Agente criado com sucesso")
 except Exception as e:
     logger.error(f"Erro ao criar agente: {e}")
     raise
+
+# Inicializa Knowledge Base para RAG
+kb = KnowledgeBase(settings)
+if not kb.is_populated():
+    logger.warning("Knowledge base vazia. Execute: python seed_knowledge.py para popular.")
 
 # ======================== APLICAÇÃO FASTAPI ========================
 app = FastAPI(
@@ -277,7 +274,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["POST", "GET", "DELETE"],
     allow_headers=["Content-Type", settings.API_KEY_HEADER],
 )
 
@@ -370,11 +367,32 @@ async def process_query(
                 detail="Query contém caracteres inválidos"
             )
 
-        # Processa a query com histórico da sessão
-        resp = agent.invoke({
+        # RAG: recupera contexto relevante da knowledge base
+        suffix = ""
+        try:
+            retrieved = kb.query(request.query, k=3)
+            if retrieved:
+                context = "\n\n".join(
+                    f"[{d.metadata.get('source', 'desconhecido')}]\n{d.page_content[:800]}"
+                    for d in retrieved
+                )
+                suffix = (
+                    "Contexto adicional para ajudar na resposta:\n"
+                    f"{context}\n\n"
+                    "Use estas informacoes se relevantes para a pergunta. "
+                    "Nunca invente informacoes que nao estejam nos dados ou no contexto fornecido."
+                )
+        except Exception:
+            logger.warning("RAG indisponivel — segue sem contexto adicional")
+
+        # Processa a query com histórico da sessão e contexto RAG
+        invoke_input = {
             "input": request.query,
             "chat_history": chat_history,
-        })
+        }
+        if suffix:
+            invoke_input["suffix"] = suffix
+        resp = agent.invoke(invoke_input)
 
         output = resp.get("output", "")
 
@@ -431,9 +449,199 @@ async def root():
         "endpoints": {
             "health": "/health (GET)",
             "query": "/query (POST) - Requer X-API-Key",
+            "datasets": "/datasets (GET) - Requer X-API-Key",
+            "upload": "/upload (POST) - Requer X-API-Key",
             "docs": "/docs (GET)" if not settings.is_production else None
         }
     }
+
+
+# ======================== DATASETS ENDPOINTS ========================
+class DatasetUploadResponse(BaseModel):
+    """Resposta de upload de dataset"""
+    status: str = "success"
+    dataset_id: str
+    name: str
+    rows: int
+    columns: int
+    message: str
+
+
+class DatasetListResponse(BaseModel):
+    """Resposta da listagem de datasets"""
+    active_dataset: str
+    datasets: dict
+
+
+class DatasetSwitchRequest(BaseModel):
+    """Request para trocar dataset ativo"""
+    dataset_id: str
+
+
+@app.get(
+    "/datasets",
+    response_model=DatasetListResponse,
+    dependencies=[Depends(verify_api_key)],
+    tags=["Datasets"]
+)
+async def list_datasets(x_api_key: str = Depends(verify_api_key)):
+    """Lista todos os datasets disponíveis."""
+    try:
+        datasets_info = dataset_manager.list_datasets()
+        logger.info("Listagem de datasets realizada")
+        return DatasetListResponse(**datasets_info)
+    except Exception as e:
+        logger.error(f"Erro ao listar datasets: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+
+
+@app.post(
+    "/upload",
+    response_model=DatasetUploadResponse,
+    dependencies=[Depends(verify_api_key)],
+    tags=["Datasets"]
+)
+async def upload_dataset_file(
+    file: UploadFile = File(...),
+    name: str = None,
+    x_api_key: str = Depends(verify_api_key),
+):
+    """
+    Realiza upload de um novo dataset (Excel .xlsx).
+    """
+    try:
+        # Valida tipo de arquivo
+        if not file.filename.lower().endswith('.xlsx'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Apenas arquivos .xlsx são aceitos"
+            )
+        
+        # Lê conteúdo do arquivo
+        file_content = await file.read()
+        
+        # Faz upload via dataset manager
+        dataset_id = dataset_manager.upload_dataset(
+            filename=file.filename,
+            file_content=file_content,
+            dataset_name=name or file.filename
+        )
+        
+        # Obtém informações do dataset
+        dataset_info = dataset_manager.index["datasets"][dataset_id]
+        
+        logger.info(f"Dataset enviado com sucesso: {dataset_id}")
+        
+        return DatasetUploadResponse(
+            status="success",
+            dataset_id=dataset_id,
+            name=dataset_info["name"],
+            rows=dataset_info["rows"],
+            columns=dataset_info["columns"],
+            message=f"Dataset '{dataset_info['name']}' enviado com sucesso"
+        )
+    except ValueError as e:
+        logger.warning(f"Erro de validação no upload: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Erro ao realizar upload: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@app.post(
+    "/datasets/{dataset_id}/activate",
+    dependencies=[Depends(verify_api_key)],
+    tags=["Datasets"]
+)
+async def activate_dataset(
+    dataset_id: str,
+    x_api_key: str = Depends(verify_api_key),
+):
+    """Ativa um dataset para ser usado nas queries."""
+    try:
+        dataset_manager.set_active_dataset(dataset_id)
+        
+        # Recarrega o agente com o novo dataset
+        global df, agent
+        df = dataset_manager.load_dataset(dataset_id)
+        
+        # Reconstrói o agente com o novo DataFrame
+        agent = create_pandas_dataframe_agent(
+            llm=llm,
+            df=df,
+            agent_type="openai-tools",
+            allow_dangerous_code=settings.ALLOW_DANGEROUS_CODE,
+            verbose=True,
+            handle_parsing_errors=True,
+            prefix=_get_agent_prefix(df),
+        )
+        
+        dataset_info = dataset_manager.index["datasets"][dataset_id]
+        
+        logger.info(f"Dataset ativado: {dataset_id}")
+        
+        return {
+            "status": "success",
+            "active_dataset": dataset_id,
+            "name": dataset_info["name"],
+            "rows": dataset_info["rows"],
+            "columns": dataset_info["columns"],
+            "message": f"Dataset '{dataset_info['name']}' ativado com sucesso"
+        }
+    except ValueError as e:
+        logger.warning(f"Erro ao ativar dataset: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Erro ao ativar dataset: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@app.delete(
+    "/datasets/{dataset_id}",
+    dependencies=[Depends(verify_api_key)],
+    tags=["Datasets"]
+)
+async def delete_dataset(
+    dataset_id: str,
+    x_api_key: str = Depends(verify_api_key),
+):
+    """Deleta um dataset (apenas os não-padrão)."""
+    try:
+        dataset_manager.delete_dataset(dataset_id)
+        logger.info(f"Dataset deletado: {dataset_id}")
+        return {
+            "status": "success",
+            "message": f"Dataset '{dataset_id}' deletado com sucesso"
+        }
+    except ValueError as e:
+        logger.warning(f"Erro ao deletar dataset: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Erro ao deletar dataset: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
 # ======================== STARTUP/SHUTDOWN ========================
